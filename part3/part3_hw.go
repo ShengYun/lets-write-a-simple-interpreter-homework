@@ -39,27 +39,27 @@ func NewInterpreter(input string) Interpreter {
 }
 
 func (interpreter *Interpreter) Expr() int {
+	interpreter.getNextToken()
+
 	result := interpreter.term()
-	for interpreter.currentChar != '\x00' {
+	for interpreter.currentToken.kind == PLUS || interpreter.currentToken.kind == MINIUS {
 		token := interpreter.currentToken
 		if token.kind == PLUS {
 			interpreter.eat(PLUS)
-			result += mustAtoi(interpreter.currentToken.value)
-			interpreter.eat(INTEGER)
+			result += interpreter.term()
 		}
 		if token.kind == MINIUS {
 			interpreter.eat(MINIUS)
-			result -= mustAtoi(interpreter.currentToken.value)
-			interpreter.eat(INTEGER)
+			result -= interpreter.term()
 		}
 	}
 	return result
 }
 
 func (interpreter *Interpreter) term() int {
-	token := interpreter.getNextToken()
-	num := mustAtoi(token.value)
+	token := interpreter.currentToken
 	interpreter.eat(INTEGER)
+	num := mustAtoi(token.value)
 	return num
 }
 
@@ -114,6 +114,8 @@ func (interpreter *Interpreter) getNextToken() token {
 			interpreter.currentToken = token{MINIUS, "-"}
 			return interpreter.currentToken
 		}
+
+		panic("Invalid syntax")
 	}
 
 	interpreter.currentToken = token{EOF, "EOF"}
